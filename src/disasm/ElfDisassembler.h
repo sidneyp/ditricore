@@ -5,7 +5,6 @@
 //===----------------------------------------------------------------------===//
 // 
 // Copyright (c) 2015 Technical University of Kaiserslautern.
-// Created by M. Ammar Ben Khadra.
 
 #pragma once
 #include "binutils/elf/elf++.hh"
@@ -42,15 +41,19 @@ public:
 
     bool valid() const { return m_valid; }
     void disassembleCodeUsingSymbols() const;
+    void disassembleCodeUsingLinearSweep() const;
 
-    void disassembleSectionbyName(std::string& sec_name) const;
+    const elf::section & findSectionbyName(std::string sec_name) const;
     void print_string_hex(unsigned char *str, size_t len) const;
     bool isSymbolTableAvailable();
+    void disassembleSectionUsingSymbols(const elf::section &sec) const;
+    void disassembleSectionUsingLinearSweep(const elf::section &sec) const;
 
 private:
     bool isBranch(const cs_insn *inst) const;
+    bool isDirectBranch(const cs_insn *inst) const;
     void prettyPrintInst(const csh& handle, cs_insn* inst) const;
-    void disassembleSectionUsingSymbols(const elf::section &sec) const;
+
     void initializeCapstone(csh *handle) const;
     std::vector<std::pair<size_t, ARMCodeSymbol>>
         getCodeSymbolsForSection(const elf::section &sec) const;
