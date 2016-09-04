@@ -23,12 +23,12 @@ add_library(capstone STATIC IMPORTED)
 
 set(SOURCE_FILES ${CMAKE_SOURCE_DIR}/src/util/cmdline.h main.cpp)
 
-add_executable(dithumb ${SOURCE_FILES} main.cpp)
+add_executable(ditricore ${SOURCE_FILES} main.cpp)
 
-add_dependencies(dithumb elf++ dwarf++ disasm capstone)
+add_dependencies(ditricore elf++ dwarf++ disasm capstone)
 
-target_link_libraries(dithumb ${CMAKE_SOURCE_DIR}/lib/libelf++.a)
-target_link_libraries(dithumb ${CMAKE_SOURCE_DIR}/lib/libdwarf++.a)
-target_link_libraries(dithumb ${CMAKE_SOURCE_DIR}/lib/libdisasm.a)
-target_link_libraries(dithumb /usr/lib/libcapstone.a)
+target_link_libraries(ditricore ${CMAKE_SOURCE_DIR}/lib/libelf++.a)
+target_link_libraries(ditricore ${CMAKE_SOURCE_DIR}/lib/libdwarf++.a)
+target_link_libraries(ditricore ${CMAKE_SOURCE_DIR}/lib/libdisasm.a)
+target_link_libraries(ditricore /usr/lib/libcapstone.a)
 

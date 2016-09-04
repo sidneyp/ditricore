@@ -3,7 +3,7 @@
 // This file is distributed under the MIT License. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
-// 
+//
 // Copyright (c) 2015 Technical University of Kaiserslautern.
 
 #include "ElfDisassembler.h"
@@ -12,19 +12,6 @@
 #include <algorithm>
 
 namespace disasm {
-
-
-class ARMCodeSymbolStrings {
-public:
-    static std::string
-    kThumb() { return "$t"; }
-
-    static std::string
-    kARM() { return "$a"; }
-
-    static std::string
-    kData() { return "$d"; }
-};
 
 ElfDisassembler::ElfDisassembler() : m_valid{false} { }
 
@@ -131,13 +118,13 @@ ElfDisassembler::disassembleSectionUsingSymbols(const elf::section &sec) const {
         index++;
         if (index < symbols.size())
             // adjust code_ptr to start of next symbol.
-            code_ptr += (symbols[index].first - symbol.first);
+            code_ptr += (symbols[index] - symbol);
 
-        address = symbol.first;
+        address = symbol;
         if (index < symbols.size())
-            size = symbols[index].first - symbol.first;
+            size = symbols[index] - symbol;
         else
-            size = last_addr - symbol.first;
+            size = last_addr - symbol;
 
         while (cs_disasm_iter(handle, &code_ptr, &size, &address, inst)) {
             prettyPrintInst(handle, inst);
@@ -192,8 +179,8 @@ ElfDisassembler::disassembleCodeUsingLinearSweep() const {
 }
 
 bool ElfDisassembler::isDirectBranch(const cs_insn *inst) const {
-    return inst->detail->arm.op_count == 1
-        && inst->detail->arm.operands[0].type == ARM_OP_IMM;
+    return inst->detail->tricore.op_count == 1
+        && inst->detail->tricore.operands[0].type == TRICORE_OP_IMM;
 }
 
 bool ElfDisassembler::isBranch(const cs_insn *inst) const {
@@ -201,22 +188,9 @@ bool ElfDisassembler::isBranch(const cs_insn *inst) const {
 
     cs_detail *detail = inst->detail;
     // assuming that each instruction should belong to at least one group
-    if (detail->groups[detail->groups_count - 1] == ARM_GRP_JUMP)
+    if (detail->groups[detail->groups_count - 1] == TRICORE_GRP_JUMP)
         return true;
-    if (inst->id == ARM_INS_POP) {
-        // pop accepts a register list. If pc was among them then this a branch
-        for (int i = 0; i < detail->arm.op_count; ++i) {
-            if (detail->arm.operands[i].reg == ARM_REG_PC) return true;
-        }
-    }
-
-    if ((detail->arm.operands[0].type == ARM_OP_REG)
-        && (detail->arm.operands[0].reg == ARM_REG_PC)) {
-        if (inst->id == ARM_INS_STR) {
-            return false;
-        }
-        return true;
-    }
+    
     return false;
 }
 
@@ -264,9 +238,9 @@ void ElfDisassembler::prettyPrintInst(const csh &handle, cs_insn *inst) const {
 //    }
 }
 
-std::vector<std::pair<size_t, ARMCodeSymbol>>
+std::vector<size_t>
 ElfDisassembler::getCodeSymbolsForSection(const elf::section &sec) const {
-    std::vector<std::pair<size_t, ARMCodeSymbol>> result;
+    std::vector<size_t> result;
 
     // Check for symbol table, if none was found then
     // the instance is invalid.
@@ -287,11 +261,10 @@ ElfDisassembler::getCodeSymbolsForSection(const elf::section &sec) const {
         // we assume that the start addr of each section is available in
         // code symbols.
         if ((start_addr <= value) && (value < end_addr)) {
-                result.emplace_back(std::make_pair(value,
-                                                   ARMCodeSymbol::kData));            
+                result.emplace_back(value);
         }
     }
-    
+
     // Symbols are not necessary sorted, this step is required to
     // avoid potential SEGEV.
     std::sort(result.begin(), result.end());

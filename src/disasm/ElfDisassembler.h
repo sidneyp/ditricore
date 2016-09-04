@@ -12,12 +12,6 @@
 
 namespace disasm {
 
-enum class ARMCodeSymbol: std::uint8_t {
-    kThumb = 1,
-    kARM = 2,
-    kData = 4
-};
-
 /**
  * ElfDisassembler
  */
@@ -55,7 +49,7 @@ private:
     void prettyPrintInst(const csh& handle, cs_insn* inst) const;
 
     void initializeCapstone(csh *handle) const;
-    std::vector<std::pair<size_t, ARMCodeSymbol>>
+    std::vector<size_t>
         getCodeSymbolsForSection(const elf::section &sec) const;
 
 private:
