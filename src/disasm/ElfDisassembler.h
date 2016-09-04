@@ -65,8 +65,8 @@ private:
     struct CapstoneConfig final{
         public:
         CapstoneConfig():
-        arch_type{CS_ARCH_ARM},
-            mode{CS_MODE_THUMB},
+        arch_type{CS_ARCH_TRICORE},
+            mode{CS_MODE_LITTLE_ENDIAN},
             details{true}{
         }
         CapstoneConfig(const CapstoneConfig& src) = default;

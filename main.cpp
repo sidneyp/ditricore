@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
     cmdline::parser cmd_parser;
     cmd_parser.add<string>(config.kFile,
                            'f',
-                           "Path to an ARM ELF file to be disassembled",
+                           "Path to a TriCore ELF file to be disassembled",
                            true,
                            "");
     cmd_parser.add(config.kLinearSweep, 'l', "Disassembly using linear sweep");
@@ -42,10 +42,10 @@ int main(int argc, char **argv) {
 
     elf::elf elf_file(elf::create_mmap_loader(fd));
 
-    // We only disassmble ARM/Thumb executables.
+    // We only disassmble TriCore executables.
     if (static_cast<elf::ElfISA>(elf_file.get_hdr().machine)
-        != elf::ElfISA::kARM) {
-        fprintf(stderr, "%s : Elf file architecture is not ARM!\n", argv[1]);
+        != elf::ElfISA::kTriCore) {
+        fprintf(stderr, "%s : Elf file architecture is not TriCore!\n", argv[1]);
         return 3;
     }
 

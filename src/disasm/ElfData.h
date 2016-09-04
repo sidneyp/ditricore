@@ -30,6 +30,7 @@ enum class ElfISA: ElfTypes::Half {
     kPowerPC = 0x14,
     kARM = 0x28,
     kSuperH = 0x2A,
+    kTriCore = 0x2C,
     kIA_64 = 0x32,
     kx86_64 = 0x3E,
     kAArch64 = 0xB7

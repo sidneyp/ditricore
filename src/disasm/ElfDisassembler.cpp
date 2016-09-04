@@ -47,7 +47,7 @@ ElfDisassembler::print_string_hex(unsigned char *str, size_t len) const {
 void inline
 ElfDisassembler::initializeCapstone(csh *handle) const {
     cs_err err_no;
-    err_no = cs_open(CS_ARCH_ARM, CS_MODE_THUMB, handle);
+    err_no = cs_open(CS_ARCH_TRICORE, CS_MODE_LITTLE_ENDIAN, handle);
     if (err_no) {
         throw std::runtime_error("Failed on cs_open() "
                                      "with error returned:" + err_no);
@@ -62,11 +62,6 @@ ElfDisassembler::disassembleSectionUsingLinearSweep
     csh handle;
 
     initializeCapstone(&handle);
-    if (m_elf_file->get_hdr().entry % 2) {
-        cs_option(handle, CS_OPT_MODE, CS_MODE_THUMB);
-    } else {
-        cs_option(handle, CS_OPT_MODE, CS_MODE_ARM);
-    }
     cs_option(handle, CS_OPT_SKIPDATA, CS_OPT_ON);
     size_t address = sec.get_hdr().addr;
     size_t size = sec.get_hdr().size;
@@ -134,24 +129,15 @@ ElfDisassembler::disassembleSectionUsingSymbols(const elf::section &sec) const {
     size_t direct_branch_count = 0;
     for (auto &symbol : symbols) {
         index++;
-        if (symbol.second == ARMCodeSymbol::kData) {
-            if (index < symbols.size())
-                // adjust code_ptr to start of next symbol.
-                code_ptr += (symbols[index].first - symbol.first);
-            continue;
-        }
+        if (index < symbols.size())
+            // adjust code_ptr to start of next symbol.
+            code_ptr += (symbols[index].first - symbol.first);
+
         address = symbol.first;
         if (index < symbols.size())
             size = symbols[index].first - symbol.first;
         else
             size = last_addr - symbol.first;
-
-        if (symbol.second == ARMCodeSymbol::kARM)
-            cs_option(handle, CS_OPT_MODE, CS_MODE_ARM);
-        else
-            // We assume that the value of code symbol type is strictly
-            // either Data, ARM, or Thumb.
-            cs_option(handle, CS_OPT_MODE, CS_MODE_THUMB);
 
         while (cs_disasm_iter(handle, &code_ptr, &size, &address, inst)) {
             prettyPrintInst(handle, inst);
@@ -167,7 +153,7 @@ ElfDisassembler::disassembleSectionUsingSymbols(const elf::section &sec) const {
         }
     }
     printf("Instruction count: %lu\nBasic Block count: %lu\n"
-               "Direct jumps: %lu (%2.2f \%%)\nIndirect jumps:%lu (%2.2f \%%)\n",
+               "Direct jumps: %lu (%2.2f \%%)\nIndirect jumps: %lu (%2.2f \%%)\n",
            instruction_count,
            basic_block_count,
            direct_branch_count,
@@ -286,7 +272,7 @@ ElfDisassembler::getCodeSymbolsForSection(const elf::section &sec) const {
     // the instance is invalid.
     elf::section sym_sec = m_elf_file->get_section(".symtab");
     // Returning a valid section means that there was no symbol table
-    //  provided in ELF file.
+    // provided in ELF file.
     if (!sym_sec.valid())
         return result;
 
@@ -301,21 +287,11 @@ ElfDisassembler::getCodeSymbolsForSection(const elf::section &sec) const {
         // we assume that the start addr of each section is available in
         // code symbols.
         if ((start_addr <= value) && (value < end_addr)) {
-            if (symbol.get_name() == ARMCodeSymbolStrings::kThumb()) {
                 result.emplace_back(std::make_pair(value,
-                                                   ARMCodeSymbol::kThumb));
-
-            } else if (symbol.get_name() == ARMCodeSymbolStrings::kARM()) {
-                result.emplace_back(std::make_pair(value,
-                                                   ARMCodeSymbol::kARM));
-
-            } else if (symbol.get_name() == ARMCodeSymbolStrings::kData()) {
-                result.emplace_back(std::make_pair(value,
-                                                   ARMCodeSymbol::kData));
-
-            }
+                                                   ARMCodeSymbol::kData));            
         }
     }
+    
     // Symbols are not necessary sorted, this step is required to
     // avoid potential SEGEV.
     std::sort(result.begin(), result.end());
@@ -326,7 +302,7 @@ bool
 ElfDisassembler::isSymbolTableAvailable() {
     elf::section sym_sec = m_elf_file->get_section(".symtab");
     // Returning a invalid section means that there was no symbol table
-    //  provided in ELF file.
+    // provided in ELF file.
 
     return sym_sec.valid();
 }
