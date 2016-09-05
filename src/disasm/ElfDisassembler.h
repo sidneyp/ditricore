@@ -60,7 +60,7 @@ private:
         public:
         CapstoneConfig():
         arch_type{CS_ARCH_TRICORE},
-            mode{CS_MODE_LITTLE_ENDIAN},
+            mode{(cs_mode)0},
             details{true}{
         }
         CapstoneConfig(const CapstoneConfig& src) = default;

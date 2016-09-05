@@ -34,7 +34,7 @@ ElfDisassembler::print_string_hex(unsigned char *str, size_t len) const {
 void inline
 ElfDisassembler::initializeCapstone(csh *handle) const {
     cs_err err_no;
-    err_no = cs_open(CS_ARCH_TRICORE, CS_MODE_LITTLE_ENDIAN, handle);
+    err_no = cs_open(CS_ARCH_TRICORE, (cs_mode)0, handle);
     if (err_no) {
         throw std::runtime_error("Failed on cs_open() "
                                      "with error returned:" + err_no);
@@ -75,7 +75,7 @@ ElfDisassembler::disassembleSectionUsingLinearSweep
         }
     }
     printf("Instruction count: %lu\nBasic Block count: %lu\n"
-               "Direct jumps: %lu (%2.2f \%%)\nIndirect jumps:%lu (%2.2f \%%)\n",
+               "Direct jumps: %lu (%2.2f \%%)\nIndirect jumps: %lu (%2.2f \%%)\n",
            instruction_count,
            basic_block_count,
            direct_branch_count,
